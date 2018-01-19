@@ -16,6 +16,7 @@ def answer(question):
                 (char1, char2, char1, str(int(win_percent)), str(total))
 
 
+# for testing
 if __name__ == '__main__':
     question = ''
     while question != 'q':

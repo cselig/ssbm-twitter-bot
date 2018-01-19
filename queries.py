@@ -1,3 +1,5 @@
+# there's gotta be a better way
+
 import sqlite3
 
 conn = sqlite3.connect('data/ssbm.db')

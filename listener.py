@@ -6,7 +6,8 @@ from answer import answer
 from pprint import pprint
 import json
 
-
+# Program flow:
+#   listener -> answer -> parse -> query
 class SmashListener(StreamListener):
 
     def make_api(self, auth):
