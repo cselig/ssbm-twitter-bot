@@ -1,0 +1,5 @@
+local/
+data/
+.python-version
+keys.txt
+__pycache__/
