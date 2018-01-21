@@ -2,18 +2,22 @@
 #   Marth vs Fox on Final destination
 #   Sheik vs Peach
 
-def make_aliases():
+
+def make_aliases(path):
     aliases = {}
-    with open('data/aliases.txt', 'r') as f:
+    with open(path, 'r') as f:
         headers = next(f)
         for l in f:
-            character = l.split(':')[0]
+            name = l.split(':')[0]
             aliases_list = l.split(':')[1].strip().split(',')
             for a in aliases_list:
-                aliases[a] = character
+                aliases[a] = name
     return aliases
 
-aliases = make_aliases()
+
+char_aliases = make_aliases('data/char_aliases.txt')
+# tag_aliases = make_aliases('data/tag_aliases.txt')
+
 
 def parse(question):
     q_split = question.split()
@@ -50,9 +54,9 @@ def parse(question):
         else:
             char2 = char2_list[0]
 
-    if char1 in aliases:
-        char1 = aliases[char1]
-    if char2 in aliases:
-        char2 = aliases[char2]
+    if char1.lower() in char_aliases:
+        char1 = char_aliases[char1.lower()]
+    if char2.lower() in char_aliases:
+        char2 = char_aliases[char2.lower()]
 
-    return char1, char2, stage
+    return char1.title(), char2.title(), stage.title()
