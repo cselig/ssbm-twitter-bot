@@ -3,3 +3,4 @@ data/
 .python-version
 keys.txt
 __pycache__/
+test_setup.py
