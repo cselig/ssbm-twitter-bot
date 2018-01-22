@@ -4,6 +4,33 @@ import sqlite3
 
 conn = sqlite3.connect('data/ssbm.db')
 
+
+def query_best_counterpick(char1, char2):
+    c = conn.cursor()
+
+    c.execute('''
+        SELECT 
+            stage,
+            (sum(case when winner_char = ? then 1 else 0 end) * 1.0 / sum(1) * 100) as percent_win, 
+            sum(1) as total_games
+        from(
+            select 
+                *, 
+                (case when games.winner = p1_tag then p1_char 
+                when games.winner = p2_tag then p2_char end) as winner_char
+            from sets join games using(setid)
+            where (p1_char = ? and p2_char = ? or 
+                p1_char = ? and p2_char = ?)
+            ) 
+        where stage in ('Final Destination', 'Pokemon Stadium', 'Battlefield', 'Dreamland', "Yoshi's Story", 'Fountain of Dreams')
+        group by stage
+        order by percent_win desc
+        limit 1''', 
+            (char1, char1, char2, char2, char1))
+
+    return c
+
+
 # player char vs. player char on a certain stage
 def query_players_chars_stage(p1, p2, p1_char, p2_char, stage):
     c = conn.cursor()

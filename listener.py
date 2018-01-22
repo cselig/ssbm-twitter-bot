@@ -18,6 +18,19 @@ class SmashListener(StreamListener):
         self.char_aliases = self.make_aliases('data/char_aliases.txt')
         # self.tag_aliases = self.make_aliases('data/tag_aliases.txt')
         self.stage_aliases = self.make_aliases('data/stage_aliases.txt')
+        self.all_chars = self.make_all_chars('data/char_aliases.txt')
+
+
+    # make list of all character names and all aliases
+    def make_all_chars(self, path):
+        chars = []
+        with open(path, 'r') as f:
+            headers = next(f)
+            for l in f:
+                chars.append(l.split(':')[0])
+                if l.strip().split(':')[1] != '':
+                    chars = chars + l.split(':')[1].strip().split(',')
+        return chars
 
 
     # create aliases out of file with following format
@@ -60,8 +73,13 @@ class SmashListener(StreamListener):
 
 
     def answer(self, question):
-        char1, char2, stage = self.parse(question)
-        if stage:
+        char1, char2, stage, counterpick = self.parse(question)
+        if counterpick:
+            c = queries.query_best_counterpick(char1, char2)
+            best_stage, win_percent, total = c.fetchone()
+            return "%s's best counterpick vs %s is %s (%s%% win rate out of %s total games)" % \
+                    (char1, char2, best_stage, str(int(win_percent)), str(total))
+        elif stage:
             c = queries.query_chars_stage(char1, char2, stage)
             win_percent, total = c.fetchone()
             return '%s vs %s on %s:\n%s has won %s%% of %s games' % \
@@ -77,35 +95,52 @@ class SmashListener(StreamListener):
         q_split = question.split()
         stage_fl = False
         stage = ''
+        counterpick = False
 
-        if ' on ' in question:
-            on_index = q_split.index('on')
-            stage_fl = True
-            stage_list = question.split()[on_index + 1:]
-            if len(stage_list) == 2:
-                stage = stage_list[0] + ' ' + stage_list[1]
-            else:
-                stage = stage_list[0]
+        if 'counterpick' in question:
+            counterpick = True
+            chars = []
+            for w in question.split():
+                if w.lower() in self.all_chars:
+                    chars.append(w.lower())
+                # catch possesive
+                elif w[:-2].lower() in self.all_chars:
+                    chars.append(w[:-2].lower())
+                # catch possesive with no '
+                elif w[:-1].lower() in self.all_chars:
+                    chars.append(w[:-1].lower())
+            print(chars)
+            char1 = chars[0]
+            char2 = chars[1]
+        else:
+            if ' on ' in question:
+                on_index = q_split.index('on')
+                stage_fl = True
+                stage_list = question.split()[on_index + 1:]
+                if len(stage_list) == 2:
+                    stage = stage_list[0] + ' ' + stage_list[1]
+                else:
+                    stage = stage_list[0]
 
-        if 'vs' in question:
-            if 'vs.' in question:
-                vs_index = q_split.index('vs.')
-            else:
-                vs_index = q_split.index('vs')
-            char1_list = q_split[:vs_index]
-            if len(char1_list) == 2:
-                char1 = char1_list[0] + ' ' + char1_list[1]
-            else:
-                char1 = char1_list[0]
-            if stage_fl:
-                char2_list = q_split[vs_index + 1:on_index]
-            else:
-                char2_list = q_split[vs_index + 1:]
+            if 'vs' in question:
+                if 'vs.' in question:
+                    vs_index = q_split.index('vs.')
+                else:
+                    vs_index = q_split.index('vs')
+                char1_list = q_split[:vs_index]
+                if len(char1_list) == 2:
+                    char1 = char1_list[0] + ' ' + char1_list[1]
+                else:
+                    char1 = char1_list[0]
+                if stage_fl:
+                    char2_list = q_split[vs_index + 1:on_index]
+                else:
+                    char2_list = q_split[vs_index + 1:]
 
-            if len(char2_list) == 2:
-                char2 = char2_list[0] + ' ' + char2_list[1]
-            else:
-                char2 = char2_list[0]
+                if len(char2_list) == 2:
+                    char2 = char2_list[0] + ' ' + char2_list[1]
+                else:
+                    char2 = char2_list[0]
 
         if char1.lower() in self.char_aliases:
             char1 = self.char_aliases[char1.lower()]
@@ -119,7 +154,7 @@ class SmashListener(StreamListener):
         if stage != "Yoshi's Story": 
             stage = stage.title()
 
-        return char1.title(), char2.title(), stage
+        return char1.title(), char2.title(), stage, counterpick
 
 
 if __name__ == '__main__':
