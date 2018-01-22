@@ -1,0 +1,15 @@
+sets (
+    setid TEXT PRIMARY KEY NOT NULL,
+    p1_tag TEXT,
+    p2_tag TEXT,
+    winner TEXT)
+
+games (
+    setid TEXT,
+    game INTEGER,
+    stage TEXT,
+    p1_char TEXT,
+    p2_char TEXT,
+    winner TEXT,
+    stock_diff INTEGER,
+    FOREIGN KEY (setid) REFERENCES sets(setid)''')
