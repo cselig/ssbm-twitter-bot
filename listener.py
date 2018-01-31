@@ -1,22 +1,19 @@
 from tweepy.streaming import StreamListener
 from tweepy import OAuthHandler, Stream, API
 
-from pprint import pprint
 import json
 import queries
 
 
 # Program flow:
-#   listener -> answer -> parse -> query
+#   on_data -> answer -> parse -> query
 class SmashListener(StreamListener):
 
     # probably want to figure out how to roll this up into the superclass init method
     def setup(self, api_auth):
         self.api = API(api_auth)
-        # self.api.update_status('Online!')
 
         self.char_aliases = self.make_aliases('data/char_aliases.txt')
-        # self.tag_aliases = self.make_aliases('data/tag_aliases.txt')
         self.stage_aliases = self.make_aliases('data/stage_aliases.txt')
         self.all_chars = self.make_all_chars('data/char_aliases.txt')
 
@@ -34,7 +31,7 @@ class SmashListener(StreamListener):
 
 
     # create aliases out of file with following format
-    #   {canon name}:{list of aliases, comma sep, lower}
+    #   {canon. name}:{list of aliases, comma sep, lower}
     # Used to create aliases for tags, stages, and characters
     def make_aliases(self, path):
         aliases = {}
@@ -48,6 +45,7 @@ class SmashListener(StreamListener):
         return aliases
 
 
+    # entry point for answering a tweet
     def on_data(self, raw_data):
         data = json.loads(raw_data)
         tweet_id = data['id_str']
@@ -72,6 +70,7 @@ class SmashListener(StreamListener):
         print(status)
 
 
+    # TODO: more structured way to determine what question is being asked
     def answer(self, question):
         char1, char2, stage, counterpick = self.parse(question)
         if counterpick:
@@ -91,13 +90,14 @@ class SmashListener(StreamListener):
                     (char1, char2, char1, str(int(win_percent)), str(total))
 
 
+    # TODO: think through this logic a little more, might be a better way to structure
     def parse(self, question):
         q_split = question.split()
         stage_fl = False
         stage = ''
         counterpick = False
 
-        if 'counterpick' in question:
+        if any(x in question for x in ['counterpick', 'counter pick']):
             counterpick = True
             chars = []
             for w in question.split():
@@ -109,7 +109,6 @@ class SmashListener(StreamListener):
                 # catch possesive with no '
                 elif w[:-1].lower() in self.all_chars:
                     chars.append(w[:-1].lower())
-            print(chars)
             char1 = chars[0]
             char2 = chars[1]
         else:

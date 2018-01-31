@@ -1,4 +1,4 @@
-# there's gotta be a better way
+# TODO: there's gotta be a better way
 
 import sqlite3
 
@@ -16,8 +16,9 @@ def query_best_counterpick(char1, char2):
         from(
             select 
                 *, 
-                (case when games.winner = p1_tag then p1_char 
-                when games.winner = p2_tag then p2_char end) as winner_char
+                case
+                    when games.winner = p1_tag then p1_char
+                    when games.winner = p2_tag then p2_char end as winner_char
             from sets join games using(setid)
             where (p1_char = ? and p2_char = ? or 
                 p1_char = ? and p2_char = ?)
@@ -123,8 +124,9 @@ def query_chars_all_stages(char1, char2):
         from(
             select 
                 *, 
-                (case when games.winner = p1_tag then p1_char 
-                when games.winner = p2_tag then p2_char end) as winner_char
+                case
+                    when games.winner = p1_tag then p1_char
+                    when games.winner = p2_tag then p2_char end as winner_char
             from sets join games using(setid)
             where (p1_char = ? and p2_char = ? or 
                 p1_char = ? and p2_char = ?)
@@ -147,8 +149,9 @@ def query_chars_stage(char1, char2, stage):
         from(
             select 
                 *, 
-                (case when games.winner = p1_tag then p1_char 
-                when games.winner = p2_tag then p2_char end) as winner_char
+                case
+                    when games.winner = p1_tag then p1_char
+                    when games.winner = p2_tag then p2_char end as winner_char
             from sets join games using(setid)
             where (p1_char = ? and p2_char = ? or 
                 p1_char = ? and p2_char = ?)
@@ -171,8 +174,9 @@ def query_chars(char1, char2):
         from(
             select 
                 *, 
-                (case when games.winner = p1_tag then p1_char 
-                when games.winner = p2_tag then p2_char end) as winner_char
+                case
+                    when games.winner = p1_tag then p1_char
+                    when games.winner = p2_tag then p2_char end as winner_char
             from sets join games using(setid)
             where (p1_char = ? and p2_char = ? or 
                 p1_char = ? and p2_char = ?)
