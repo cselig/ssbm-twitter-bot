@@ -156,7 +156,7 @@ class SmashListener(StreamListener):
         return char1.title(), char2.title(), stage, counterpick
 
 
-if __name__ == '__main__':
+def main():
     with open('local/keys.txt', 'r') as f:
         keys = [l.split('=')[1].strip() for l in f]
     auth = OAuthHandler(keys[0], keys[1])
@@ -167,3 +167,7 @@ if __name__ == '__main__':
     stream = Stream(auth, l)
     # TODO: better way to listen for mentions? 
     stream.filter(track=['@ssbm_stats_bot'])
+
+
+if __name__ == '__main__':
+    main()
