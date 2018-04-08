@@ -2,7 +2,7 @@ from tweepy.streaming import StreamListener
 from tweepy import OAuthHandler, Stream, API
 
 import json
-import queries
+from database import Database
 
 
 # Program flow:
@@ -16,6 +16,7 @@ class SmashListener(StreamListener):
         self.char_aliases = self.make_aliases('data/char_aliases.txt')
         self.stage_aliases = self.make_aliases('data/stage_aliases.txt')
         self.all_chars = self.make_all_chars('data/char_aliases.txt')
+        self.db = Database('data/ssbm.db')
 
 
     # make list of all character names and all aliases
@@ -36,7 +37,7 @@ class SmashListener(StreamListener):
     def make_aliases(self, path):
         aliases = {}
         with open(path, 'r') as f:
-            headers = next(f)
+            next(f) # read out headers
             for l in f:
                 name = l.split(':')[0]
                 aliases_list = l.split(':')[1].strip().split(',')
@@ -74,20 +75,17 @@ class SmashListener(StreamListener):
     def answer(self, question):
         char1, char2, stage, counterpick = self.parse(question)
         if counterpick:
-            c = queries.query_best_counterpick(char1, char2)
-            best_stage, win_percent, total = c.fetchone()
+            best_stage, win_percent, total_games = self.db.query_best_stage_counterpick(char1, char2)
             return "%s's best counterpick vs %s is %s (%s%% win rate out of %s total games)" % \
-                    (char1, char2, best_stage, str(int(win_percent)), str(total))
+                    (char1, char2, best_stage, str(int(win_percent)), str(total_games))
         elif stage:
-            c = queries.query_chars_stage(char1, char2, stage)
-            win_percent, total = c.fetchone()
+            win_percent, total_games = self.db.query_chars_stage(char1, char2, stage)
             return '%s vs %s on %s:\n%s has won %s%% of %s games' % \
-                    (char1, char2, stage, char1, str(int(win_percent)), str(total))
+                    (char1, char2, stage, char1, str(int(win_percent)), str(total_games))
         else:
-            c = queries.query_chars(char1, char2)
-            win_percent, total = c.fetchone() 
+            win_percent, total_games = self.db.query_chars(char1, char2)
             return '%s vs %s:\n%s has won %s%% of %s games' % \
-                    (char1, char2, char1, str(int(win_percent)), str(total))
+                    (char1, char2, char1, str(int(win_percent)), str(total_games))
 
 
     # TODO: think through this logic a little more, might be a better way to structure
@@ -156,7 +154,7 @@ class SmashListener(StreamListener):
         return char1.title(), char2.title(), stage, counterpick
 
 
-if __name__ == '__main__':
+def main():
     with open('local/keys.txt', 'r') as f:
         keys = [l.split('=')[1].strip() for l in f]
     auth = OAuthHandler(keys[0], keys[1])
@@ -167,3 +165,7 @@ if __name__ == '__main__':
     stream = Stream(auth, l)
     # TODO: better way to listen for mentions? 
     stream.filter(track=['@ssbm_stats_bot'])
+
+
+if __name__ == '__main__':
+    main()
