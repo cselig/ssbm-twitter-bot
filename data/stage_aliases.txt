@@ -1,0 +1,5 @@
+stage:list_of_aliases_comma_sep_lower
+Final Destination:fd
+Yoshi's Story:yoshis story,yoshis,story,yoshi's
+Pokemon Stadium:stadium
+Fountain of Dreams:fod,fountain

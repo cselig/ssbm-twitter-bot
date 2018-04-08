@@ -1,0 +1,25 @@
+character:list_of_aliases_comma_sep_lower
+captain falcon:falcon
+ice climbers:ics,climbers
+ganon:gannon,gannondorf,ganondorf
+peach:
+falco:
+mewtwo:
+pikachu:pika
+samus:
+marth:
+pichu:
+young link:
+jigglypuff:puff
+fox:
+doctor mario:doc
+donkey kong:dk
+sheik:
+mario:
+luigi:
+roy:
+game and watch:
+link:
+yoshi:
+kirby:
+ness:

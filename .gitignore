@@ -1,6 +1,4 @@
 local/
-data/
+data/ssbm.db
 .python-version
-keys.txt
 __pycache__/
-test.py
