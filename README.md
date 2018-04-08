@@ -10,8 +10,6 @@ as the following:
 This bot isn't currently running 24/7 as the subset of data it operates on is quite small, and
 I don't want it get too much usage without first backing it up with a bigger and more comprehensive
 dataset. When the bot is running, you can tweet @ssbm_stats_bot.
-If you've got a different solution to getting more matchup data other than scraping
-Tafostats, hit me up!
 
 ## Setup
 
