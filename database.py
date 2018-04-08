@@ -1,4 +1,4 @@
-"""Queries handles retrieving information from the database."""
+"""Database handles retrieving information from the database."""
 
 # TODO: there's gotta be a better way
 
