@@ -1,6 +1,7 @@
 """Database handles retrieving information from the database."""
 
-import sqlite3
+from sqlalchemy import create_engine, select
+from sqlalchemy.sql import text
 
 class Database:
     """A Database interfaces with the database of ssbm stats.
@@ -11,7 +12,7 @@ class Database:
     """
 
     def __init__(self, db_path):
-        self.conn = sqlite3.connect(db_path)
+        self.engine = create_engine('sqlite:///' + db_path)
 
     def query_best_stage_counterpick(self, char1, char2):
         """Returns the best stage to select against when playing char1 against char2.
@@ -25,37 +26,25 @@ class Database:
                 char2 on the stage, and the total number of games recorded between char1 and char2
                 on that stage.
         """
-        c = self.conn.cursor()
-
-        c.execute('''
+        query = text('''
             select
                 stage,
-                sum(case when winner_char = ? then 1 else 0 end) * 1.0 / sum(1) * 100 as percent_win,
+                sum(case when winner_char = :char1 then 1 else 0 end) * 100.0 / sum(1) as win_percent,
                 sum(1) as total_games
-            from (
-                select
-                    stage,
-                    case
-                        when winner_id = p1_id then p1_char
-                        else p2_char
-                    end as winner_char
-                    from
-                        games
-                    where(p1_char = ? and p2_char = ? or
-                        p1_char = ? and p2_char = ?)
-                        and stage in ('Final Destination', 'Pokemon Stadium', 'Battlefield', 'Dreamland', "Yoshi's Story", 'Fountain of Dreams')
-                )
+            from
+                games_v
+            where
+                (p1_char = :char1 and p2_char = :char2
+                or p2_char = :char1 and p1_char = :char2)
+                and stage is not null
             group by
                 stage
             order by
-                percent_win desc
-            limit 1''', 
-                (char1, char1, char2, char2, char1))
-
-        best_stage, win_percent, total_games = c.fetchone()
-
-        return best_stage, win_percent, total_games
-
+                2 desc
+            limit 1
+        ''')
+        stage, win_percent, total_games = self.engine.execute(query, char1=char1, char2=char2).fetchone()
+        return stage, win_percent, total_games
 
     def query_chars_stage(self, char1, char2, stage):
         """Returns the win percentage of char1 against char2 on the specified stage.
@@ -69,31 +58,19 @@ class Database:
                 and the total number of recorded games played on that stage between char1 and
                 char2.
         """
-        c = self.conn.cursor()
-
-        c.execute('''
+        query = text('''
             select
-                (sum(case when winner_char = ? then 1 else 0 end) * 1.0 / sum(1) * 100) as percent_win, 
+                sum(case when winner_char = :char1 then 1 else 0 end) * 100.0 / sum(1) as win_percent,
                 sum(1) as total_games
-            from (
-            select
-                case
-                    when winner_id = p1_id then p1_char
-                    when winner_id = p2_id then p2_char
-                end as winner_char
-                from
-                    games
-                where
-                    (p1_char = ? and p2_char = ?
-                    or p1_char = ? and p2_char = ?)
-                    and stage = ?
-            )
-            ''', (char1, char1, char2, char2, char1, stage))
-
-        win_percent, total_games = c.fetchone()
-
+            from
+                games_v
+            where
+                (p1_char = :char1 and p2_char = :char2
+                or p2_char = :char1 and p1_char = :char2)
+                and stage = :stage
+        ''')
+        win_percent, total_games = self.engine.execute(query, char1=char1, char2=char2, stage=stage).fetchone()
         return win_percent, total_games
-
 
     def query_chars(self, char1, char2):
         """Returns the win percentage of char1 against char2.
@@ -105,26 +82,15 @@ class Database:
             (float, int): The win percentage of char1 against char2 and the total number of games
                 between char1 and char2.
         """
-        c = self.conn.cursor()
-
-        c.execute('''
+        query = text('''
             select
-                (sum(case when winner_char = ? then 1 else 0 end) * 1.0 / sum(1) * 100) as percent_win, 
+                sum(case when winner_char = :char1 then 1 else 0 end) * 100.0 / sum(1) as win_percent,
                 sum(1) as total_games
-            from (
-            select
-                case
-                    when winner_id = p1_id then p1_char
-                    when winner_id = p2_id then p2_char
-                end as winner_char
-                from
-                    games
-                where
-                    p1_char = ? and p2_char = ?
-                    or p1_char = ? and p2_char = ?
-                )
-            ''', (char1, char1, char2, char2, char1))
-        
-        win_percent, total_games = c.fetchone() 
-
+            from
+                games_v
+            where
+                p1_char = :char1 and p2_char = :char2
+                or p2_char = :char1 and p1_char = :char2
+        ''')
+        win_percent, total_games = self.engine.execute(query, char1=char1, char2=char2).fetchone()
         return win_percent, total_games
